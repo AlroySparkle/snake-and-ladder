@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from "react";
 
+const power2 = (value) => {
+  return value * value;
+};
+
+const vertical = (identifier) => {
+  return Math.floor(identifier / 10);
+};
+
+const horizontal = (identifier) => {
+  return Math.floor(identifier / 10) % 2 == 0
+    ? identifier % 10
+    : 9 - (identifier % 10);
+};
+
 export default function Board() {
   const [playerPosition, setPlayerPosition] = useState(-1);
   const [diceValue, setDiceValue] = useState(0);
@@ -20,7 +34,23 @@ export default function Board() {
     94: 55,
     96: 77,
   };
-
+  const rotation = {
+    37: 34,
+    41: 28,
+    13: 72,
+    29: 45,
+    75: -32,
+    66: -55,
+    91: -28,
+    98: 25,
+    5: 162,
+    9: 162,
+    25: -135,
+    17: 170,
+    23: -147,
+    55: -165,
+    77: -153,
+  };
   useEffect(() => {
     if (diceValue > 0) {
       setPlayerPosition(playerPosition + diceValue);
@@ -32,19 +62,29 @@ export default function Board() {
   function Cell({ identifier = 0 }) {
     const squareSize = "80px";
     const lineSize = transferer[identifier]
-      ? 253
-      : // Math.sqrt(
-        //       Math.pow(
-        //         Math.floor(transferer[identifier] / 10) * 10 * 8 -
-        //           Math.floor(identifier / 10) * 10 * 8,
-        //         2
-        //       ) +
-        //         Math.pow(
-        //           (transferer[identifier] % 10) * 8 - (identifier % 10) * 8,
-        //           2
-        //         )
-        //     )
-        0;
+      ? Math.sqrt(
+          power2(
+            vertical(transferer[identifier]) * 80 - vertical(identifier) * 80
+          ) +
+            power2(
+              horizontal(transferer[identifier]) * 80 -
+                horizontal(identifier) * 80
+            )
+        )
+      : 0;
+    if (identifier == 3) {
+      console.log(
+        Math.sqrt(
+          power2(
+            vertical(transferer[identifier]) * 80 - vertical(identifier) * 80
+          ) +
+            power2(
+              horizontal(transferer[identifier]) * 80 -
+                horizontal(identifier) * 80
+            )
+        )
+      );
+    }
     return (
       <div
         id={identifier + ""}
@@ -61,28 +101,24 @@ export default function Board() {
           background:
             identifier == playerPosition
               ? "blue"
-              : transferer[identifier]
-              ? identifier > transferer[identifier]
-                ? "red"
-                : "green"
               : identifier % 2 == 0
               ? "#7be2ff"
               : "#f4f4f4",
         }}
       >
-        {transferer[identifier]
-          ? ` to ${transferer[identifier] + 1}`
-          : identifier + 1}
+        {identifier + 1}
         {transferer[identifier] ? (
           <div
             style={{
-              rotate: transferer[identifier] ? `-${342 - 180}deg` : 0,
+              rotate: transferer[identifier]
+                ? `${rotation[transferer[identifier]]}deg`
+                : 0,
 
               position: "absolute",
               height: `${lineSize}px`,
               width: "2px",
               transform: "translate(-50%,-50%)",
-              background: "black",
+              background: identifier > transferer[identifier] ? "red" : "green",
               zIndex: 9999,
             }}
           ></div>
