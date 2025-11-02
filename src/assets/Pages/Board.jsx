@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 
+/******************
+ ****needed math****
+ ******************/
 const power2 = (value) => {
   return value * value;
 };
@@ -14,9 +17,34 @@ const horizontal = (identifier) => {
     : 9 - (identifier % 10);
 };
 
+const playerPositioning = (index) => {
+  if (index < 0) {
+    return { bottom: "40px", left: "-40px" };
+  }
+  return {
+    bottom: vertical(index * 80 - 40 + "px"),
+    left: horizontal(index) * 80 - 40 + "px",
+  };
+};
+
+/******************
+ ********map********
+ ******************/
+
 export default function Board() {
-  const [playerPosition, setPlayerPosition] = useState(-1);
+  //states values
+  const [playerIndex, setPlayerIndex] = useState(-1);
+  const [playerPosition, setPlayerPosition] = useState({
+    left: "-40px",
+    bottom: "40px",
+  });
   const [diceValue, setDiceValue] = useState(0);
+
+  useEffect(() => {
+    setPlayerPosition(playerPositioning(playerIndex));
+  }, [playerIndex]);
+  //fixed values needed
+  const squareSize = "80px";
   const transferer = {
     0: 37,
     3: 13,
@@ -53,14 +81,13 @@ export default function Board() {
   };
   useEffect(() => {
     if (diceValue > 0) {
-      setPlayerPosition(playerPosition + diceValue);
+      setPlayerIndex(playerIndex + diceValue);
       setDiceValue(0);
-    } else if (transferer[playerPosition]) {
-      setPlayerPosition(transferer[playerPosition]);
+    } else if (transferer[playerIndex]) {
+      setPlayerIndex(transferer[playerIndex]);
     }
   }, [diceValue]);
   function Cell({ identifier = 0 }) {
-    const squareSize = "80px";
     const lineSize = transferer[identifier]
       ? Math.sqrt(
           power2(
@@ -72,19 +99,7 @@ export default function Board() {
             )
         )
       : 0;
-    if (identifier == 3) {
-      console.log(
-        Math.sqrt(
-          power2(
-            vertical(transferer[identifier]) * 80 - vertical(identifier) * 80
-          ) +
-            power2(
-              horizontal(transferer[identifier]) * 80 -
-                horizontal(identifier) * 80
-            )
-        )
-      );
-    }
+
     return (
       <div
         id={identifier + ""}
@@ -99,7 +114,7 @@ export default function Board() {
           height: squareSize,
           width: squareSize,
           background:
-            identifier == playerPosition
+            identifier == playerIndex
               ? "blue"
               : identifier % 2 == 0
               ? "#7be2ff"
@@ -116,9 +131,24 @@ export default function Board() {
 
               position: "absolute",
               height: `${lineSize}px`,
-              width: "2px",
+              width: "5px",
               transform: "translate(-50%,-50%)",
               background: identifier > transferer[identifier] ? "red" : "green",
+              zIndex: 9999,
+            }}
+          ></div>
+        ) : undefined}
+        {transferer[identifier] ? (
+          <div
+            style={{
+              height: "1rem",
+              width: "1rem",
+              background: identifier > transferer[identifier] ? "red" : "green",
+              borderRadius: "100%",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%,-50%)",
               zIndex: 9999,
             }}
           ></div>
@@ -133,6 +163,7 @@ export default function Board() {
           border: "1px solid black",
           display: "flex",
           flexDirection: "column-reverse",
+          position: "relative",
         }}
       >
         {Array(10)
@@ -159,6 +190,18 @@ export default function Board() {
               </div>
             );
           })}
+        <div
+          style={{
+            height: "10px",
+            width: "10px",
+            position: "absolute",
+            background: "blue",
+            left: playerPosition.left,
+            bottom: playerPosition.bottom,
+            transition: ".3s",
+            zIndex: 9999,
+          }}
+        ></div>
       </div>
       <button
         onClick={() => {
